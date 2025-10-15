@@ -2,6 +2,12 @@
 Example usage of evaluation metrics.
 
 This script demonstrates how to use individual metrics or the full evaluation pipeline.
+
+NOTE: Update the file paths below to point to your actual video files.
+      If you have MuseTalk demo files, you can use:
+        - source_video: ../MuseTalk/data/video/yongen.mp4
+        - audio_file: ../MuseTalk/data/audio/yongen.wav
+        - generated_video: path to your generated output video
 """
 
 from pathlib import Path
@@ -23,15 +29,18 @@ def example_individual_metrics():
     print("Example 1: Using Individual Metrics")
     print("="*80)
     
-    # Example paths - replace with your actual paths
-    source_video = "../MuseTalk/data/video/yongen.mp4"
-    generated_video = "../modal_app/yongen_output.mp4"
-    audio_file = "../MuseTalk/data/audio/yongen.wav"
+    # REPLACE THESE PATHS WITH YOUR ACTUAL FILES
+    source_video = "path/to/source_video.mp4"
+    generated_video = "path/to/generated_video.mp4"
+    audio_file = "path/to/audio.wav"
     
     # Check if files exist
     if not Path(source_video).exists():
-        print(f"⚠ Source video not found: {source_video}")
-        print("Please update the paths in this script to your actual video files.")
+        print(f"⚠  Please update the file paths in this script.")
+        print("\n📝 Edit example_usage.py and set:")
+        print(f"   source_video = 'path/to/source_video.mp4'")
+        print(f"   generated_video = 'path/to/generated_video.mp4'")
+        print(f"   audio_file = 'path/to/audio.wav'")
         return
     
     # FID Metric
@@ -85,15 +94,18 @@ def example_full_evaluation():
     print("Example 2: Using Full Evaluation Pipeline")
     print("="*80)
     
-    # Example paths - replace with your actual paths
-    source_video = "../MuseTalk/data/video/yongen.mp4"
-    generated_video = "../modal_app/yongen_output.mp4"
-    audio_file = "../MuseTalk/data/audio/yongen.wav"
+    # REPLACE THESE PATHS WITH YOUR ACTUAL FILES
+    source_video = "path/to/source_video.mp4"
+    generated_video = "path/to/generated_video.mp4"
+    audio_file = "path/to/audio.wav"
     
     # Check if files exist
     if not Path(source_video).exists():
-        print(f"⚠ Source video not found: {source_video}")
-        print("Please update the paths in this script to your actual video files.")
+        print(f"⚠  Please update the file paths in this script.")
+        print("\n📝 Edit example_usage.py and set:")
+        print(f"   source_video = 'path/to/source_video.mp4'")
+        print(f"   generated_video = 'path/to/generated_video.mp4'")
+        print(f"   audio_file = 'path/to/audio.wav'")
         return
     
     try:
@@ -121,15 +133,18 @@ def example_quick_test():
     print("Example 3: Quick Test (Skip Heavy Metrics)")
     print("="*80)
     
-    # Example paths - replace with your actual paths
-    source_video = "../MuseTalk/data/video/yongen.mp4"
-    generated_video = "../modal_app/yongen_output.mp4"
-    audio_file = "../MuseTalk/data/audio/yongen.wav"
+    # REPLACE THESE PATHS WITH YOUR ACTUAL FILES
+    source_video = "path/to/source_video.mp4"
+    generated_video = "path/to/generated_video.mp4"
+    audio_file = "path/to/audio.wav"
     
     # Check if files exist
     if not Path(source_video).exists():
-        print(f"⚠ Source video not found: {source_video}")
-        print("Please update the paths in this script to your actual video files.")
+        print(f"⚠  Please update the file paths in this script.")
+        print("\n📝 Edit example_usage.py and set:")
+        print(f"   source_video = 'path/to/source_video.mp4'")
+        print(f"   generated_video = 'path/to/generated_video.mp4'")
+        print(f"   audio_file = 'path/to/audio.wav'")
         return
     
     try:
@@ -161,12 +176,13 @@ def print_usage_instructions():
     print("1. Individual Metrics - Use each metric separately")
     print("2. Full Evaluation - Run all metrics together")
     print("3. Quick Test - Skip heavy metrics for faster testing")
+    print("\n⚠️  Before running, update the file paths in example_usage.py")
     print("\nTo run these examples:")
     print("  python example_usage.py individual    # Run example 1")
     print("  python example_usage.py full          # Run example 2")
     print("  python example_usage.py quick         # Run example 3")
     print("  python example_usage.py all           # Run all examples")
-    print("\nOr use the main evaluation script:")
+    print("\nOr use the main evaluation script directly:")
     print("  python evaluate.py --source_video <path> --generated_video <path> --audio <path>")
     print("="*80)
 
@@ -193,4 +209,3 @@ if __name__ == "__main__":
     else:
         print(f"Unknown mode: {mode}")
         print_usage_instructions()
-

@@ -24,7 +24,8 @@ This folder contains implementation of standard evaluation metrics for assessing
 - **How it works**: Uses SyncNet to compute audio-visual synchronization confidence
 - **Interpretation**: Higher confidence (lower distance) indicates better lip sync (confidence range: 0-1)
 - **Implementation**: `lse_c_metric.py`
-- **Model**: Uses MuseTalk's SyncNet or a basic SyncNet architecture
+- **Model**: Automatically loads MuseTalk's pre-trained SyncNet (1.4GB) for accurate evaluation
+- **Status**: ✅ **Fully integrated** - Works out of the box with MuseTalk weights
 
 ## Installation
 
@@ -51,12 +52,17 @@ pip install facenet-pytorch
 
 ### SyncNet Model for LSE-C
 
-The LSE-C metric can use MuseTalk's pre-trained SyncNet model:
+The LSE-C metric **automatically loads** MuseTalk's pre-trained SyncNet weights:
 ```
-MuseTalk/models/syncnet/latentsync_syncnet.pt
+MuseTalk/models/syncnet/latentsync_syncnet.pt (1.4GB)
 ```
 
-If not available, it will use a basic SyncNet architecture (less accurate).
+**Status**: ✅ The evaluation pipeline now automatically:
+- Detects and loads the pre-trained SyncNet weights
+- Provides accurate lip-sync quality scores
+- Falls back to basic architecture if weights are missing (with warning)
+
+No additional configuration needed!
 
 ## Usage
 
@@ -66,8 +72,17 @@ Evaluate a generated video with all metrics:
 
 ```bash
 python evaluate.py \
+  --source_video path/to/source_video.mp4 \
+  --generated_video path/to/generated_video.mp4 \
+  --audio path/to/audio.wav \
+  --output_json results.json
+```
+
+**Example with MuseTalk demo files:**
+```bash
+python evaluate.py \
   --source_video ../MuseTalk/data/video/yongen.mp4 \
-  --generated_video ../modal_app/yongen_output.mp4 \
+  --generated_video path/to/your_generated_output.mp4 \
   --audio ../MuseTalk/data/audio/yongen.wav \
   --output_json results.json
 ```

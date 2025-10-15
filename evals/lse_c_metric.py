@@ -43,8 +43,14 @@ class LSECMetric:
     def _load_syncnet(self):
         """Load SyncNet model for lip-sync evaluation."""
         try:
+            # Add MuseTalk to Python path
+            import sys
+            musetalk_path = str(Path(__file__).parent.parent / "MuseTalk")
+            if musetalk_path not in sys.path:
+                sys.path.insert(0, musetalk_path)
+            
             # Try to load existing SyncNet from MuseTalk
-            from MuseTalk.musetalk.loss.syncnet import SyncNet_color
+            from musetalk.loss.syncnet import SyncNet_color
             
             self.syncnet_model = SyncNet_color()
             
@@ -52,23 +58,27 @@ class LSECMetric:
             if self.syncnet_model_path:
                 checkpoint = torch.load(self.syncnet_model_path, map_location=self.device)
                 self.syncnet_model.load_state_dict(checkpoint)
-                print(f"Loaded SyncNet weights from {self.syncnet_model_path}")
+                print(f"✓ Loaded SyncNet weights from {self.syncnet_model_path}")
             else:
                 # Try to find the default syncnet weights
                 default_path = Path(__file__).parent.parent / "MuseTalk/models/syncnet/latentsync_syncnet.pt"
                 if default_path.exists():
+                    print(f"Loading pre-trained SyncNet weights from {default_path}...")
                     checkpoint = torch.load(default_path, map_location=self.device)
                     self.syncnet_model.load_state_dict(checkpoint)
-                    print(f"Loaded SyncNet weights from {default_path}")
+                    print(f"✓ Loaded pre-trained SyncNet weights ({default_path.stat().st_size / 1e9:.2f} GB)")
                 else:
-                    print("Warning: No SyncNet weights loaded. Using random initialization.")
+                    print("⚠ Warning: No SyncNet weights found. Using random initialization (not reliable).")
+                    print(f"   Expected location: {default_path}")
             
             self.syncnet_model.to(self.device)
             self.syncnet_model.eval()
             self.model_type = "musetalk_syncnet"
+            print("✓ SyncNet loaded successfully")
             
         except (ImportError, Exception) as e:
-            print(f"Could not load MuseTalk SyncNet: {e}")
+            print(f"✗ Could not load MuseTalk SyncNet: {e}")
+            print(f"   Falling back to basic SyncNet (results will not be reliable)")
             # Fall back to implementing basic SyncNet architecture
             self._initialize_basic_syncnet()
     
@@ -297,11 +307,8 @@ class LSECMetric:
                 
                 # Get embeddings
                 try:
-                    if self.model_type == "musetalk_syncnet":
-                        audio_emb = self.syncnet_model.get_audio_embed(audio_tensor)
-                        video_emb = self.syncnet_model.get_image_embed(video_tensor)
-                    else:
-                        audio_emb, video_emb = self.syncnet_model(audio_tensor, video_tensor)
+                    # Both MuseTalk SyncNet and BasicSyncNet use forward(audio, video)
+                    audio_emb, video_emb = self.syncnet_model(audio_tensor, video_tensor)
                     
                     # Compute confidence
                     confidence = self.compute_sync_confidence(audio_emb, video_emb)
