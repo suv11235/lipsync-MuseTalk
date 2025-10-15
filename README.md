@@ -9,6 +9,7 @@ Real-time lip-sync inference deployed on Modal GPU with FastAPI orchestrator.
 - 📦 Persistent storage via NetworkFileSystem
 - ⚡ ~1.2s per frame processing speed
 - 💰 Cost-efficient: ~$0.02 per 8-second video
+- 📊 Comprehensive evaluation metrics (FID, CSIM, LSE-C)
 
 ## Architecture
 
@@ -236,6 +237,13 @@ project/
 │   ├── test_e2e.py             # E2E test
 │   ├── requirements.txt
 │   └── README.md               # Modal app docs
+├── evals/                       # Evaluation metrics
+│   ├── fid_metric.py           # FID (visual fidelity)
+│   ├── csim_metric.py          # CSIM (identity preservation)
+│   ├── lse_c_metric.py         # LSE-C (lip synchronization)
+│   ├── evaluate.py             # Main evaluation script
+│   ├── requirements.txt
+│   └── README.md               # Evaluation docs
 └── MuseTalk/                    # MuseTalk inference code
     ├── scripts/inference.py
     ├── configs/
@@ -344,11 +352,38 @@ modal app list
 
 ---
 
+## Evaluation Metrics
+
+The `evals/` folder contains implementations of standard lip-sync quality metrics:
+
+- **FID (Frechet Inception Distance)**: Measures visual fidelity
+- **CSIM (Cosine Similarity)**: Measures identity preservation  
+- **LSE-C (Lip-Sync Error Confidence)**: Measures lip synchronization quality
+
+### Quick Start
+
+```bash
+cd evals
+pip install -r requirements.txt
+
+# Run evaluation on generated video
+python evaluate.py \
+  --source_video ../MuseTalk/data/video/yongen.mp4 \
+  --generated_video ../modal_app/yongen_output.mp4 \
+  --audio ../MuseTalk/data/audio/yongen.wav \
+  --output_json results.json
+```
+
+For detailed documentation, see `evals/README.md`.
+
+---
+
 ## Development
 
 For detailed API documentation, see:
 - `orchestrator/README.md` - API reference
 - `modal_app/README.md` - Modal deployment details
+- `evals/README.md` - Evaluation metrics guide
 
 ---
 

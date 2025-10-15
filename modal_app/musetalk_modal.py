@@ -39,6 +39,9 @@ image = (
             "python3 -m mim install 'mmcv>=2.0.0,<2.2.0'",  # Must be <2.2.0
             "python3 -m mim install 'mmdet>=3.0.0'",
             "python3 -m mim install 'mmpose>=1.0.0'",
+            # Pre-download face detection models to avoid runtime downloads
+            "mkdir -p /root/.cache/torch/hub/checkpoints",
+            "python3 -c 'import torch; torch.hub.download_url_to_file(\"https://www.adrianbulat.com/downloads/python-fan/s3fd-619a316812.pth\", \"/root/.cache/torch/hub/checkpoints/s3fd-619a316812.pth\")'",
         ]
     )
 )
@@ -63,7 +66,7 @@ def _resolve_path(p: str) -> str:
     image=image,
     gpu="T4",
     network_file_systems={"/shared": nfs},
-    timeout=60 * 30,
+    timeout=60 * 60,  # 60 minutes for longer videos and slow landmark extraction
 )
 def run_inference(
     *,
@@ -166,3 +169,18 @@ def run_inference(
         "output_path": output_video_path,
     }
     return result
+
+
+@app.function(
+    image=image,
+    network_file_systems={"/shared": nfs},
+    timeout=60 * 5,
+)
+def download_result(job_id: str, version: str = "v15") -> bytes:
+    """Download the output video for a given job ID."""
+    output_path = f"/shared/results/{job_id}/{version}/output.mp4"
+    if not os.path.exists(output_path):
+        raise FileNotFoundError(f"Output file not found: {output_path}")
+    
+    with open(output_path, "rb") as f:
+        return f.read()

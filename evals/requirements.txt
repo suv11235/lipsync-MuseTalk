@@ -1,0 +1,32 @@
+# Requirements for MuseTalk Evaluation Metrics
+
+# Core dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+scipy>=1.10.0
+opencv-python>=4.8.0
+Pillow>=10.0.0
+
+# Audio processing for LSE-C
+librosa>=0.10.0
+soundfile>=0.12.0
+
+# Face recognition for CSIM (choose one or both)
+# Option 1: InsightFace (recommended for better accuracy)
+insightface>=0.7.0
+onnxruntime>=1.15.0  # Required for InsightFace
+
+# Option 2: FaceNet (alternative, lighter weight)
+# facenet-pytorch>=2.5.0
+
+# Pre-trained models
+# For FID computation
+# torchvision already includes inception_v3
+
+# Optional: For better performance
+# onnxruntime-gpu>=1.15.0  # GPU acceleration for InsightFace
+
+# Utilities
+tqdm>=4.65.0
+

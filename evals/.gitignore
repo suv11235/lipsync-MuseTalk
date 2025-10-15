@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+venv_eval/
+env/
+ENV/
+
+# Test outputs and results
+*.json
+*_results.json
+*_evaluation*.json
+*_test*.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model downloads
+*.pth
+*.onnx
+models/
+
+# Temporary evaluation reports (keep template docs only)
+EVALUATION_SUMMARY.md
+FINAL_RESULTS.md
+*_SUMMARY.md
+*_RESULTS.md
+
