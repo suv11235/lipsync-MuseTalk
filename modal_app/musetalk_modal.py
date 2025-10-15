@@ -13,7 +13,9 @@ app = modal.App("musetalk-poc")
 nfs = modal.NetworkFileSystem.from_name("musetalk-shared", create_if_missing=True)
 
 # Paths
-LOCAL_MUSETALK_DIR = "/home/ubuntu/project/MuseTalk"
+import pathlib
+SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
+LOCAL_MUSETALK_DIR = str(SCRIPT_DIR.parent / "MuseTalk")
 REMOTE_MUSETALK_DIR = "/root/MuseTalk"
 REMOTE_RESULTS_DIR = "/shared/results"
 
