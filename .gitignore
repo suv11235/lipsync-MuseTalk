@@ -27,7 +27,9 @@ MuseTalk/models/*
 MuseTalk/results/
 MuseTalk/.venv/
 MuseTalk/data/video/*.mp4
+!MuseTalk/data/video/yongen.mp4
 MuseTalk/data/audio/*.wav
+!MuseTalk/data/audio/yongen.wav
 !MuseTalk/data/video/.gitkeep
 !MuseTalk/data/audio/.gitkeep
 

@@ -2,15 +2,125 @@
 
 Real-time lip-sync inference deployed on Modal GPU with FastAPI orchestrator.
 
-## Quick Start
+## Features
 
-### 1. Start the Orchestrator
-```bash
-cd /home/ubuntu/project/orchestrator
-python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000 &
+- 🚀 GPU-accelerated inference on Modal cloud (T4)
+- 🌐 FastAPI REST API for job submission
+- 📦 Persistent storage via NetworkFileSystem
+- ⚡ ~1.2s per frame processing speed
+- 💰 Cost-efficient: ~$0.02 per 8-second video
+
+## Architecture
+
+```
+Client → FastAPI (port 9000) → Modal Function (GPU) → MuseTalk → Result
 ```
 
-### 2. Submit a Job
+- **Orchestrator**: FastAPI REST API for job management
+- **Modal Backend**: GPU-accelerated inference (T4)
+- **Storage**: NetworkFileSystem for persistent results
+- **Processing**: ~4 minutes for 8-second video (200 frames)
+
+---
+
+## Prerequisites
+
+- Python 3.10+
+- Modal account (free tier works - sign up at https://modal.com)
+- Git
+
+---
+
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd project
+```
+
+### 2. Install Modal CLI
+
+```bash
+pip install modal
+```
+
+### 3. Authenticate with Modal
+
+```bash
+modal token new
+```
+
+This will:
+- Open your browser to authenticate
+- Save credentials to `~/.modal/`
+- Persist across sessions (one-time per machine)
+
+### 4. Download MuseTalk Models
+
+```bash
+cd MuseTalk
+bash download_weights.sh
+```
+
+**Note**: Downloads ~2GB of model weights. Models are not included in git due to size.
+
+The script will download models to:
+- `models/dwpose/`
+- `models/face-parse-bisent/`
+- `models/musetalk/`
+- `models/sd-vae-ft-mse/`
+- `models/whisper/`
+
+### 5. Deploy to Modal
+
+```bash
+cd modal_app
+modal deploy musetalk_modal.py
+```
+
+Expected output:
+```
+✓ Initialized
+✓ Created objects
+✓ App deployed! 🎉
+
+View at: https://modal.com/apps/...
+```
+
+Verify deployment:
+```bash
+modal app list | grep musetalk-poc
+```
+
+### 6. (Optional) Setup Local Orchestrator
+
+```bash
+cd orchestrator
+pip install -r requirements.txt
+```
+
+---
+
+## Usage
+
+### Option 1: Direct Modal Invocation
+
+```bash
+cd modal_app
+modal run test_e2e.py
+```
+
+### Option 2: Via FastAPI Orchestrator
+
+Start the orchestrator:
+```bash
+cd orchestrator
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000
+```
+
+Submit a job:
 ```bash
 curl -X POST http://localhost:9000/jobs \
   -H "Content-Type: application/json" \
@@ -24,26 +134,48 @@ curl -X POST http://localhost:9000/jobs \
 Response:
 ```json
 {
-  "job_id": "47dbb32d-6b1b-4dc3-807a-d4d1a35e5e5c",
+  "job_id": "abc123...",
   "status": "submitted"
 }
 ```
 
-### 3. Check Status
+Check job status:
 ```bash
 curl http://localhost:9000/jobs/{job_id}
 ```
 
-## Architecture
+### Using Your Own Videos
 
-```
-Client → FastAPI (9000) → Modal Function (GPU) → MuseTalk → Result
+1. Copy files to MuseTalk data directory:
+   ```bash
+   cp your_video.mp4 MuseTalk/data/video/
+   cp your_audio.wav MuseTalk/data/audio/
+   ```
+
+2. Submit job:
+   ```bash
+   curl -X POST http://localhost:9000/jobs \
+     -H "Content-Type: application/json" \
+     -d '{
+       "video_path": "data/video/your_video.mp4",
+       "audio_path": "data/audio/your_audio.wav",
+       "version": "v15"
+     }'
+   ```
+
+### Using URLs
+
+```bash
+curl -X POST http://localhost:9000/jobs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://example.com/video.mp4",
+    "audio_url": "https://example.com/audio.wav",
+    "version": "v15"
+  }'
 ```
 
-- **Orchestrator**: FastAPI REST API for job management
-- **Modal Backend**: GPU-accelerated inference (T4)
-- **Storage**: NetworkFileSystem for persistent results
-- **Processing**: ~4 minutes for 8-second video (200 frames)
+---
 
 ## API Endpoints
 
@@ -60,7 +192,7 @@ Content-Type: application/json
 {
   "video_path": "data/video/example.mp4",  # OR video_url
   "audio_path": "data/audio/example.wav",  # OR audio_url
-  "version": "v15"
+  "version": "v15"  # or "v1"
 }
 ```
 
@@ -69,10 +201,22 @@ Content-Type: application/json
 GET /jobs/{job_id}
 ```
 
+Response:
+```json
+{
+  "job_id": "abc123...",
+  "status": "succeeded",
+  "output_path": "/shared/results/{uuid}/v15/output.mp4",
+  "error": null
+}
+```
+
 ### Get Job Result
 ```bash
 GET /jobs/{job_id}/result
 ```
+
+---
 
 ## Project Structure
 
@@ -91,132 +235,134 @@ project/
 │   ├── musetalk_modal.py       # Modal app & function
 │   ├── test_e2e.py             # E2E test
 │   ├── requirements.txt
-│   └── README.md
+│   └── README.md               # Modal app docs
 └── MuseTalk/                    # MuseTalk inference code
     ├── scripts/inference.py
     ├── configs/
-    └── data/                    # Test assets
+    ├── data/                    # Test assets
+    └── models/                  # Model weights (download via script)
 ```
 
-## Performance
-
-**Yongen Test (200 frames)**:
-- Processing: ~1.17s per frame
-- Total time: ~4 minutes
-- GPU: T4
-- Cost: ~$0.02 per job
+---
 
 ## Modal Commands
 
 ```bash
 # List apps
-python3 -m modal app list
+modal app list
 
 # View logs
-python3 -m modal app logs musetalk-poc
+modal app logs musetalk-poc
 
 # Deploy updates
 cd modal_app
-python3 -m modal deploy musetalk_modal.py
+modal deploy musetalk_modal.py
 
 # Run E2E test
-python3 -m modal run test_e2e.py
+modal run test_e2e.py
 ```
 
-## Troubleshooting
+---
 
-**Orchestrator won't start**:
-```bash
-pkill -f "uvicorn app.main:app"
-cd /home/ubuntu/project/orchestrator
-python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000
-```
+## Performance
 
-**Job stuck in "queued"**:
-- Normal! Processing takes ~4 minutes
-- Watch progress: `python3 -m modal app logs musetalk-poc`
+**Benchmark (200 frames, 8-second video)**:
+- Processing: ~1.17s per frame
+- Total time: ~4 minutes
+- GPU: T4
+- Cost: ~$0.02 per job
 
-**Modal function not found**:
-```bash
-cd modal_app
-python3 -m modal deploy musetalk_modal.py
-```
-
-## Development
-
-### Using Your Own Videos
-
-1. Copy files to MuseTalk data directory:
-   ```bash
-   cp your_video.mp4 MuseTalk/data/video/
-   cp your_audio.wav MuseTalk/data/audio/
-   ```
-
-2. Submit job with new paths:
-   ```bash
-   curl -X POST http://localhost:9000/jobs \
-     -H "Content-Type: application/json" \
-     -d '{
-       "video_path": "data/video/your_video.mp4",
-       "audio_path": "data/audio/your_audio.wav",
-       "version": "v15"
-     }'
-   ```
-
-### Using URLs
-```bash
-curl -X POST http://localhost:9000/jobs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "video_url": "https://example.com/video.mp4",
-    "audio_url": "https://example.com/audio.wav",
-    "version": "v15"
-  }'
-```
-
-## Setup on New Machine
-
-See **[SETUP.md](SETUP.md)** for detailed instructions.
-
-**Quick start:**
-```bash
-git clone <your-repo-url>
-cd project
-pip install modal
-modal token new                           # Authenticate with Modal
-cd MuseTalk && bash download_weights.sh   # Download models (~2GB)
-cd ../modal_app
-modal deploy musetalk_modal.py            # Deploy to Modal cloud
-```
+---
 
 ## Important Notes
 
 ### What's in Git
-- ✅ All code (orchestrator, modal_app, MuseTalk/scripts)
-- ✅ Configuration and documentation
-- ❌ Model weights (~2GB, download via `download_weights.sh`)
-- ❌ Virtual environments (recreate with `pip install`)
-- ❌ Modal credentials (authenticate per machine)
+- ✅ All code (orchestrator, modal_app, MuseTalk scripts)
+- ✅ Configuration files
+- ✅ Documentation
+- ❌ Model weights (~2GB) - download via `download_weights.sh`
+- ❌ Virtual environments - recreate with `pip install`
+- ❌ Test videos/audio files
 
 ### Modal App Persistence
 - ✅ **Modal app stays deployed** even when you turn off your machine
 - ✅ Available 24/7 from Modal cloud
-- ✅ No charges when idle (only pay per job: ~$0.02/video)
-- ✅ Access from any machine after `modal token new`
+- ✅ No charges when idle (only pay per job)
+- ✅ Access from any machine after authentication
+
+### Cost Structure
+- **Deployment**: Free (app stays deployed)
+- **Idle**: $0 (no charges when not in use)
+- **Usage**: ~$0.02 per 8-second video (T4 GPU @ ~4 minutes)
+
+---
+
+## Troubleshooting
+
+### Modal Authentication Failed
+```bash
+modal token new
+```
+
+### Models Not Found
+```bash
+cd MuseTalk
+bash download_weights.sh
+```
+
+### Deployment Failed
+```bash
+# Update Modal CLI
+pip install --upgrade modal
+
+# Redeploy
+cd modal_app
+modal deploy musetalk_modal.py
+```
+
+### Orchestrator Won't Start
+```bash
+# Kill existing process
+pkill -f "uvicorn app.main:app"
+
+# Start fresh
+cd orchestrator
+python3 -m uvicorn app.main:app --host 0.0.0.0 --port 9000
+```
+
+### Job Stuck in "queued"
+- This is normal! Processing takes ~4 minutes
+- Watch progress: `modal app logs musetalk-poc`
+
+### App Not Found
+```bash
+# List all deployed apps
+modal app list
+
+# Should see: musetalk-poc (deployed)
+```
+
+---
+
+## Development
+
+For detailed API documentation, see:
+- `orchestrator/README.md` - API reference
+- `modal_app/README.md` - Modal deployment details
+
+---
+
+## License
+
+See LICENSE file in the MuseTalk directory.
+
+---
 
 ## Status
 
-✅ **PRODUCTION READY**
+✅ **Production Ready**
 
-- Orchestrator: Running
-- Modal Backend: Deployed
+- Modal Backend: Deployed and operational
+- Orchestrator: Fully functional
 - End-to-end: Tested and verified
 - Performance: ~1.2s/frame on T4 GPU
-
-## Links
-
-- **Modal Dashboard**: https://modal.com/apps
-- **Setup Guide**: [SETUP.md](SETUP.md)
-- **API Docs**: [orchestrator/README.md](orchestrator/README.md)
-- **Modal App**: [modal_app/README.md](modal_app/README.md)
-
