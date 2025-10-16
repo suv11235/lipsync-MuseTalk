@@ -369,7 +369,7 @@ pip install -r requirements.txt
 # Run evaluation on generated video
 python evaluate.py \
   --source_video ../MuseTalk/data/video/yongen.mp4 \
-  --generated_video ../modal_app/yongen_output.mp4 \
+  --generated_video path/to/your/generated_output.mp4 \
   --audio ../MuseTalk/data/audio/yongen.wav \
   --output_json results.json
 ```
@@ -393,11 +393,3 @@ See LICENSE file in the MuseTalk directory.
 
 ---
 
-## Status
-
-✅ **Production Ready**
-
-- Modal Backend: Deployed and operational
-- Orchestrator: Fully functional
-- End-to-end: Tested and verified
-- Performance: ~1.2s/frame on T4 GPU

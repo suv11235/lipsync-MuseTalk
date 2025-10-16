@@ -45,18 +45,40 @@ class LSECMetric:
         try:
             # Add MuseTalk to Python path
             import sys
+            import json
             musetalk_path = str(Path(__file__).parent.parent / "MuseTalk")
             if musetalk_path not in sys.path:
                 sys.path.insert(0, musetalk_path)
             
-            # Try to load existing SyncNet from MuseTalk
-            from musetalk.loss.syncnet import SyncNet_color
+            # Try to load existing SyncNet from MuseTalk (the correct one for inference)
+            from musetalk.models.syncnet import SyncNet
             
-            self.syncnet_model = SyncNet_color()
+            # Default SyncNet config based on LatentSync implementation (without attention blocks to avoid xformers dependency)
+            syncnet_config = {
+                "audio_encoder": {
+                    "in_channels": 64,
+                    "block_out_channels": [64, 128, 256, 256],
+                    "downsample_factors": [2, 2, 2, 2],
+                    "dropout": 0.0,
+                    "attn_blocks": [0, 0, 0, 0]  # Disable attention blocks (requires xformers)
+                },
+                "visual_encoder": {
+                    "in_channels": 3,
+                    "block_out_channels": [64, 128, 256, 256],
+                    "downsample_factors": [2, 2, 2, 2],
+                    "dropout": 0.0,
+                    "attn_blocks": [0, 0, 0, 0]  # Disable attention blocks (requires xformers)
+                }
+            }
+            
+            self.syncnet_model = SyncNet(syncnet_config)
             
             # Load weights if provided
             if self.syncnet_model_path:
                 checkpoint = torch.load(self.syncnet_model_path, map_location=self.device)
+                # Handle nested checkpoint structure (training checkpoints have "state_dict" key)
+                if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+                    checkpoint = checkpoint["state_dict"]
                 self.syncnet_model.load_state_dict(checkpoint)
                 print(f"✓ Loaded SyncNet weights from {self.syncnet_model_path}")
             else:
@@ -65,6 +87,9 @@ class LSECMetric:
                 if default_path.exists():
                     print(f"Loading pre-trained SyncNet weights from {default_path}...")
                     checkpoint = torch.load(default_path, map_location=self.device)
+                    # Handle nested checkpoint structure (training checkpoints have "state_dict" key)
+                    if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+                        checkpoint = checkpoint["state_dict"]
                     self.syncnet_model.load_state_dict(checkpoint)
                     print(f"✓ Loaded pre-trained SyncNet weights ({default_path.stat().st_size / 1e9:.2f} GB)")
                 else:
@@ -307,8 +332,11 @@ class LSECMetric:
                 
                 # Get embeddings
                 try:
-                    # Both MuseTalk SyncNet and BasicSyncNet use forward(audio, video)
-                    audio_emb, video_emb = self.syncnet_model(audio_tensor, video_tensor)
+                    # MuseTalk SyncNet uses forward(image, audio), BasicSyncNet uses forward(audio, video)
+                    if self.model_type == "musetalk_syncnet":
+                        video_emb, audio_emb = self.syncnet_model(video_tensor, audio_tensor)
+                    else:
+                        audio_emb, video_emb = self.syncnet_model(audio_tensor, video_tensor)
                     
                     # Compute confidence
                     confidence = self.compute_sync_confidence(audio_emb, video_emb)

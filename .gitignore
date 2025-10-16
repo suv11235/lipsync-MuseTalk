@@ -45,3 +45,9 @@ Thumbs.db
 # Temporary files
 nohup.out
 
+# Test outputs and comparison files (not for deployment)
+*_output.mp4
+wav2lip_*.mp4
+musetalk_output.mp4
+QUICK_WAV2LIP_GUIDE.md
+run_wav2lip_comparison.sh

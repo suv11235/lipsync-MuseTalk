@@ -2,6 +2,13 @@
 
 This folder contains implementation of standard evaluation metrics for assessing lip-sync video generation quality.
 
+## Features
+
+- ✅ **Three Standard Metrics**: FID, CSIM, LSE-C
+- ✅ **SyncNet Integration**: Automatic pre-trained model loading
+- ✅ **Baseline Comparison**: Compare MuseTalk vs Wav2Lip (or any models)
+- ✅ **Production Ready**: Clean, documented, easy to use
+
 ## Metrics Implemented
 
 ### 1. **FID (Frechet Inception Distance)** - Visual Fidelity
@@ -66,7 +73,7 @@ No additional configuration needed!
 
 ## Usage
 
-### Quick Start
+### Quick Start - Single Model Evaluation
 
 Evaluate a generated video with all metrics:
 
@@ -86,6 +93,25 @@ python evaluate.py \
   --audio ../MuseTalk/data/audio/yongen.wav \
   --output_json results.json
 ```
+
+### Baseline Comparison (MuseTalk vs Wav2Lip)
+
+Compare two models side-by-side:
+
+```bash
+python compare_baselines.py \
+  --source_video path/to/source.mp4 \
+  --audio path/to/audio.wav \
+  --model1_output path/to/musetalk_output.mp4 \
+  --model2_output path/to/wav2lip_output.mp4 \
+  --model1_name "MuseTalk" \
+  --model2_name "Wav2Lip" \
+  --output_json comparison_results.json
+```
+
+**Output**: Side-by-side comparison table + JSON with all metrics
+
+See `BASELINE_COMPARISON.md` for complete guide on comparing with Wav2Lip.
 
 ### Advanced Usage
 
