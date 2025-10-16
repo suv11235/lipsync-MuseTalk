@@ -51,3 +51,15 @@ wav2lip_*.mp4
 musetalk_output.mp4
 QUICK_WAV2LIP_GUIDE.md
 run_wav2lip_comparison.sh
+
+# Ignore entire HuggingFace Space directory
+/huggingface_space/
+
+# HuggingFace Space (separate deployment)
+huggingface_space/venv/
+huggingface_space/results/
+huggingface_space/flagged/
+huggingface_space/*.mp4
+huggingface_space/*.log
+huggingface_space/gradio_queue.db
+
