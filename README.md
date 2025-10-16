@@ -358,7 +358,7 @@ The `evals/` folder contains implementations of standard lip-sync quality metric
 
 - **FID (Frechet Inception Distance)**: Measures visual fidelity
 - **CSIM (Cosine Similarity)**: Measures identity preservation  
-- **LSE-C (Lip-Sync Error Confidence)**: Measures lip synchronization quality
+- **LSE-C (Lip-Sync Error Confidence)**: Measures lip synchronization quality *(requires GPU/Linux)*
 
 ### Quick Start
 
@@ -373,6 +373,8 @@ python evaluate.py \
   --audio ../MuseTalk/data/audio/yongen.wav \
   --output_json results.json
 ```
+
+**Note**: LSE-C metric requires a GPU/Linux environment. On macOS/CPU, FID and CSIM will still work perfectly.
 
 For detailed documentation, see `evals/README.md`.
 

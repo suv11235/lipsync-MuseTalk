@@ -140,6 +140,10 @@ def evaluate_video(
             print(f"  → Evaluated {len(conf_scores)} windows")
             print(f"  → Higher confidence indicates better lip synchronization")
             
+        except RuntimeError as e:
+            # SyncNet not available (e.g., on macOS without GPU)
+            print(f"⚠️  LSE-C skipped: {e}")
+            results["metrics"]["LSE-C"] = {"skipped": str(e)}
         except Exception as e:
             print(f"✗ Error computing LSE-C: {e}")
             results["metrics"]["LSE-C"] = {"error": str(e)}

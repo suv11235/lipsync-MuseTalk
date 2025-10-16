@@ -5,9 +5,19 @@ This folder contains implementation of standard evaluation metrics for assessing
 ## Features
 
 - ✅ **Three Standard Metrics**: FID, CSIM, LSE-C
-- ✅ **SyncNet Integration**: Automatic pre-trained model loading
+- ✅ **SyncNet Integration**: Automatic pre-trained model loading (requires GPU/Linux)
 - ✅ **Baseline Comparison**: Compare MuseTalk vs Wav2Lip (or any models)
 - ✅ **Production Ready**: Clean, documented, easy to use
+
+## ⚠️ Important Note: LSE-C Metric Requirements
+
+The **LSE-C (Lip-Sync Error Confidence)** metric requires:
+- **Linux/GPU environment** with proper dependencies (xformers, einops, diffusers)
+- **Pre-trained SyncNet model** from MuseTalk
+
+**On macOS or CPU-only environments**: LSE-C will be automatically skipped. The FID and CSIM metrics will still work perfectly.
+
+**For accurate LSE-C evaluation**: Run on a Linux machine with GPU, or use the Modal deployment.
 
 ## Metrics Implemented
 
@@ -59,17 +69,17 @@ pip install facenet-pytorch
 
 ### SyncNet Model for LSE-C
 
-The LSE-C metric **automatically loads** MuseTalk's pre-trained SyncNet weights:
-```
-MuseTalk/models/syncnet/latentsync_syncnet.pt (1.4GB)
-```
+The LSE-C metric requires MuseTalk's pre-trained SyncNet weights and GPU dependencies.
 
-**Status**: ✅ The evaluation pipeline now automatically:
-- Detects and loads the pre-trained SyncNet weights
-- Provides accurate lip-sync quality scores
-- Falls back to basic architecture if weights are missing (with warning)
+**Requirements**:
+- Linux/GPU environment
+- Dependencies: `xformers`, `einops`, `diffusers`
+- Pre-trained weights: `MuseTalk/models/syncnet/latentsync_syncnet.pt` (1.4GB)
 
-No additional configuration needed!
+**Behavior**:
+- ✅ On Linux/GPU: Automatically loads SyncNet and provides accurate scores
+- ⚠️  On macOS/CPU: LSE-C is skipped (FID and CSIM still work)
+- 💡 For LSE-C evaluation: Use Modal deployment or Linux machine
 
 ## Usage
 

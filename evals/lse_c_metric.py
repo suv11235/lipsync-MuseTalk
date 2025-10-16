@@ -103,78 +103,12 @@ class LSECMetric:
             
         except (ImportError, Exception) as e:
             print(f"✗ Could not load MuseTalk SyncNet: {e}")
-            print(f"   Falling back to basic SyncNet (results will not be reliable)")
-            # Fall back to implementing basic SyncNet architecture
-            self._initialize_basic_syncnet()
+            print(f"\n⚠️  LSE-C metric requires GPU environment with proper dependencies.")
+            print(f"   Please run evaluation on a Linux/GPU machine for accurate LSE-C scores.")
+            print(f"   LSE-C will be skipped in this evaluation.\n")
+            self.syncnet_model = None
+            self.model_type = "none"
     
-    def _initialize_basic_syncnet(self):
-        """Initialize a basic SyncNet architecture."""
-        print("Initializing basic SyncNet architecture...")
-        
-        class BasicSyncNet(nn.Module):
-            def __init__(self):
-                super(BasicSyncNet, self).__init__()
-                
-                # Audio encoder
-                self.audio_encoder = nn.Sequential(
-                    nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),
-                    nn.BatchNorm2d(32),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-                    nn.BatchNorm2d(64),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-                    nn.BatchNorm2d(128),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.AdaptiveAvgPool2d((1, 1)),
-                    nn.Flatten(),
-                    nn.Linear(128, 256),
-                )
-                
-                # Video encoder (for mouth region)
-                self.video_encoder = nn.Sequential(
-                    nn.Conv2d(15, 32, kernel_size=3, stride=1, padding=1),  # 5 frames * 3 channels
-                    nn.BatchNorm2d(32),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
-                    nn.BatchNorm2d(64),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1),
-                    nn.BatchNorm2d(128),
-                    nn.ReLU(),
-                    nn.MaxPool2d(kernel_size=2),
-                    
-                    nn.AdaptiveAvgPool2d((1, 1)),
-                    nn.Flatten(),
-                    nn.Linear(128, 256),
-                )
-                
-            def forward_audio(self, audio):
-                return self.audio_encoder(audio)
-            
-            def forward_video(self, video):
-                return self.video_encoder(video)
-            
-            def forward(self, audio, video):
-                audio_emb = self.forward_audio(audio)
-                video_emb = self.forward_video(video)
-                return audio_emb, video_emb
-        
-        self.syncnet_model = BasicSyncNet()
-        self.syncnet_model.to(self.device)
-        self.syncnet_model.eval()
-        self.model_type = "basic_syncnet"
-        print("Warning: Using basic SyncNet without pre-trained weights.")
     
     def extract_audio_features(
         self, 
@@ -292,6 +226,12 @@ class LSECMetric:
         Returns:
             Tuple of (average confidence, LSE distance, list of per-window scores)
         """
+        if self.syncnet_model is None:
+            raise RuntimeError(
+                "LSE-C metric unavailable: SyncNet model could not be loaded. "
+                "Please run evaluation on a Linux/GPU environment with proper dependencies."
+            )
+        
         print("Loading video frames...")
         frames = self.load_video_frames(video_path, extract_mouth=True)
         
